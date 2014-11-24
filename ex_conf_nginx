@@ -1,0 +1,40 @@
+server {
+        location ~* ^.+\.(jpg|jpeg|gif|css|png|js|xml)$ {
+                expires         30d;
+                access_log      off;
+        }
+        gzip on;
+        gzip_disable "msie6";
+        gzip_min_length  1000;
+
+
+        gzip_vary on;
+        gzip_proxied expired no-cache no-store private auth;
+        gzip_comp_level 6;
+        gzip_buffers 16 8k;
+        gzip_http_version 1.1;
+        gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+        pagespeed on;
+
+        # Needs to exist and be writable by nginx.  Use tmpfs for best performance.
+        pagespeed FileCachePath /var/ngx_pagespeed_cache;
+
+        # Ensure requests for pagespeed optimized resources go to the pagespeed handler
+        # and no extraneous headers get set.
+        location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+" {
+          add_header "" "";
+        }
+        location ~ "^/pagespeed_static/" { }
+        location ~ "^/ngx_pagespeed_beacon$" { }
+        listen       80;
+        server_name  truc.net;
+        root   /path/of/index/;
+        index  index.html index.htm index.php;
+
+        location ~ \.php$ {
+                fastcgi_pass   127.0.0.1:9000;
+                fastcgi_index  index.php;
+                fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+                include /etc/nginx/fastcgi_params;
+        }
+}
